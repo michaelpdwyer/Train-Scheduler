@@ -1,55 +1,73 @@
-// Initialize Firebase
-var firebaseConfig = {
-    apiKey: "AIzaSyAp_5Q37TLqwquuUl-DtzJRbZ_63TMkWeE",
-    authDomain: "train-scheduler-6835d.firebaseapp.com",
-    databaseURL: "https://train-scheduler-6835d.firebaseio.com",
-    projectId: "train-scheduler-6835d",
-    storageBucket: "train-scheduler-6835d.appspot.com",
-    messagingSenderId: "551960596710",
-    appId: "1:551960596710:web:7f1e758096db4057"
-  };
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
+$("document").ready(function () {
 
-  $("#addTrainBtn").on("click", function(){
-    
+    // Initialize Firebase
+    var firebaseConfig = {
+        apiKey: "AIzaSyAp_5Q37TLqwquuUl-DtzJRbZ_63TMkWeE",
+        authDomain: "train-scheduler-6835d.firebaseapp.com",
+        databaseURL: "https://train-scheduler-6835d.firebaseio.com",
+        projectId: "train-scheduler-6835d",
+        storageBucket: "train-scheduler-6835d.appspot.com",
+        messagingSenderId: "551960596710",
+        appId: "1:551960596710:web:7f1e758096db4057"
+    };
 
-    var trainName = $("#trainNameInput").val().trim();
-    var destination = $("#destinationInput").val().trim();
-    var firstTrain = moment($("#firstTrainInput").val().trim(),"HH:mm").subtract(10,"years").format("X");
-    var frequency = $("#frequencyInput").val().trim();
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
 
-   
-    var newTrain = {
-      name: trainName,
-      destination: destination,
-      firstTrain: firstTrain,
-      frequency: frequency
-    }
+    // Variable for database
+    var trainData = firebase.database();
 
-    trainData.ref().push(newTrain);
+    var trainName = "";
+    var destination = "";
+    var firstTrain = "";
+    var frequency = 0;
 
-    alert("Your train is added!");
+    var timeFormat = "hh:mm";
 
-    $("#trainNameInput").val("");
-    $("#destinationInput").val("");
-    $("#firstTrainInput").val("");
-    $("#frequencyInput").val("");
+    $("#addTrainBtn").on("click", function (event) {
+        event.preventDefault();
 
-    
-    return false;
+        trainName = $("#trainNameInput").val().trim();
+        destination = $("#destinationInput").val().trim();
+        firstTrain = $("#firstTrainInput").val().trim();
+        frequency = $("#frequencyInput").val().trim();
+        console.log(trainName);
 
-  });
+        firstTrain = moment(firstTrain, timeFormat).format(timeFormat);
 
-  trainData.ref().on("child_added", function(snapshot) {
-    var name = snapshot.val().name;
-    var destination = snapshot.val().destination;
-    var frequency = snapshot.val().frequency;
-    var firstTrain = snapshot.val().firstTrain;
 
-    var remainder = moment().diff(moment.unix(firstTrain), "minutes")%frequency;
-    var minutes = frequency - remainder;
-    var arrival = moment().add(minutes,"m").format("hh:mm A");
+        var newTrain = {
+            name: trainName,
+            destination: destination,
+            firstTrain: firstTrain,
+            frequency: frequency
+        };
 
-    $("#trainTable > tBody").append("<tr><td>"+name+"</td><td>"+destination+"</td><td>"+frequency+"</td><td>"+arrival+"</td><td>"+minutes+"</td></tr>");
-  });
+        trainData.ref().push(newTrain);
+
+        alert("You added a train!");
+
+        $("#trainNameInput").val("");
+        $("#destinationInput").val("");
+        $("#firstTrainInput").val("");
+        $("#frequencyInput").val("");
+
+
+        return false;
+
+    });
+
+    trainData.ref().on("child_added", function (snapshot) {
+        var name = snapshot.val().name;
+        var destination = snapshot.val().destination;
+        var frequency = snapshot.val().frequency;
+        var firstTrain = snapshot.val().firstTrain;
+
+        var remainder = moment().diff(moment.unix(firstTrain), "minutes") % frequency;
+        var minutes = frequency - remainder;
+        console.log(minutes);
+        var arrival = moment().add(minutes, "m").format("hh:mm A");
+
+        $("#trainTable > tBody").append("<tr><td>" + name + "</td><td>" + destination + "</td><td>" + frequency + "</td><td>" + arrival + "</td><td>" + minutes + "</td></tr>");
+    });
+});
